@@ -1,8 +1,8 @@
 # Go zabbix api
 
-Note, this is not tested and is adjusted for use of tpretz/terraform-provider-zabbix
+Note, this is not tested and is adjusted for use of kgeroczi/terraform-provider-zabbix
 
-[![GoDoc](https://godoc.org/github.com/tpretz/go-zabbix-api?status.svg)](https://godoc.org/github.com/tpretz/go-zabbix-api) [![MIT License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE) [![Build Status](https://travis-ci.org/tpretz/go-zabbix-api.svg?branch=master)](https://travis-ci.org/tpretz/go-zabbix-api)
+[![GoDoc](https://godoc.org/github.com/kgeroczi/go-zabbix-api?status.svg)](https://godoc.org/github.com/kgeroczi/go-zabbix-api) [![MIT License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
 This Go package provides access to Zabbix API.
 
@@ -12,7 +12,7 @@ This package aims to support multiple zabbix resources from its API like trigger
 
 ## Install
 
-Install it: `go get github.com/tpretz/go-zabbix-api`
+Install it: `go get github.com/kgeroczi/go-zabbix-api`
 
 ## Getting started
 
@@ -22,7 +22,7 @@ package main
 import (
 	"fmt"
 
-	"github.com/tpretz/go-zabbix-api"
+	"github.com/kgeroczi/go-zabbix-api"
 )
 
 func main() {
@@ -69,7 +69,7 @@ go test -v
 
 ## References
 
-Documentation is available on [godoc.org](https://godoc.org/github.com/tpretz/go-zabbix-api).
+Documentation is available on [godoc.org](https://godoc.org/github.com/kgeroczi/go-zabbix-api).
 Also, Rafael Fernandes dos Santos wrote a [great article](http://www.sourcecode.net.br/2014/02/zabbix-api-with-golang.html) about using and extending this package.
 
 License: Simplified BSD License (see [LICENSE](LICENSE)).

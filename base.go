@@ -130,7 +130,7 @@ func NewAPI(c Config) (api *API, err error) {
 	api = &API{
 		url:       c.Url,
 		c:         http.Client{},
-		UserAgent: "github.com/tpretz/go-zabbix-api",
+		UserAgent: "github.com//go-zabbix-api",
 		Logger:    c.Log,
 		Config:    c,
 	}
@@ -261,6 +261,14 @@ func (api *API) Login(user, password string) (auth string, err error) {
 
 	auth = response.Result.(string)
 	api.Auth = auth
+	return
+}
+
+// Set API token only
+// This method modifies API structure and should not be called concurrently with other methods.
+func (api *API) Token(token string) (ok string, err error) {
+	ok = "ok"
+	api.Auth = token
 	return
 }
 
