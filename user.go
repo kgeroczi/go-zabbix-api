@@ -1,11 +1,15 @@
 package zabbix
 
-// User represent Zabbix host group object
-// https://www.zabbix.com/documentation/3.2/manual/api/reference/User/object
+// User represent Zabbix user object
+// https://www.zabbix.com/documentation/current/en/manual/api/reference/user/object
 type User struct {
-	UserID   string `json:"userid,omitempty"`
-	Username string `json:"username"`
-	Password string `json:"passwd"`
+	UserID   string       `json:"userid,omitempty"`
+	Username string       `json:"username"`
+	Password string       `json:"passwd"`
+	RoleID   string       `json:"roleid"`
+	Name     string       `json:"name"`
+	Surname  string       `json:"surname"`
+	Groups   usergroupids `json:"usrgrps"`
 }
 
 // Users is an array of User
@@ -19,8 +23,8 @@ type UserID struct {
 // userids is an array of UserId
 type userids []UserID
 
-// UsersGet Wrapper for User.get
-// https://www.zabbix.com/documentation/3.2/manual/api/reference/User/get
+// UsersGet Wrapper for user.get
+// https://www.zabbix.com/documentation/current/en/manual/api/reference/user/get
 func (api *API) UsersGet(params Params) (res Users, err error) {
 	if _, present := params["output"]; !present {
 		params["output"] = "extend"
@@ -29,7 +33,7 @@ func (api *API) UsersGet(params Params) (res Users, err error) {
 	return
 }
 
-// UserGetByID Gets host group by Id only if there is exactly 1 matching host group.
+// UserGetByID Gets user by Id only if there is exactly 1 matching user.
 func (api *API) UserGetByID(id string) (res *User, err error) {
 	groups, err := api.UsersGet(Params{"userids": id})
 	if err != nil {
@@ -45,8 +49,8 @@ func (api *API) UserGetByID(id string) (res *User, err error) {
 	return
 }
 
-// UsersCreate Wrapper for User.create
-// https://www.zabbix.com/documentation/3.2/manual/api/reference/User/create
+// UsersCreate Wrapper for user.create
+// https://www.zabbix.com/documentation/current/en/manual/api/reference/user/create
 func (api *API) UsersCreate(Users Users) (err error) {
 	response, err := api.CallWithError("user.create", Users)
 	if err != nil {
@@ -61,16 +65,16 @@ func (api *API) UsersCreate(Users Users) (err error) {
 	return
 }
 
-// UsersUpdate Wrapper for User.update
-// https://www.zabbix.com/documentation/3.2/manual/api/reference/User/update
+// UsersUpdate Wrapper for user.update
+// https://www.zabbix.com/documentation/current/en/manual/api/reference/user/update
 func (api *API) UsersUpdate(Users Users) (err error) {
 	_, err = api.CallWithError("user.update", Users)
 	return
 }
 
-// UsersDelete Wrapper for User.delete
+// UsersDelete Wrapper for user.delete
 // Cleans UserID in all Users elements if call succeed.
-// https://www.zabbix.com/documentation/3.2/manual/api/reference/User/delete
+// https://www.zabbix.com/documentation/current/en/manual/api/reference/user/delete
 func (api *API) UsersDelete(Users Users) (err error) {
 	ids := make([]string, len(Users))
 	for i, user := range Users {
@@ -86,8 +90,8 @@ func (api *API) UsersDelete(Users Users) (err error) {
 	return
 }
 
-// UsersDeleteByIds Wrapper for User.delete
-// https://www.zabbix.com/documentation/3.2/manual/api/reference/User/delete
+// UsersDeleteByIds Wrapper for user.delete
+// https://www.zabbix.com/documentation/current/en/manual/api/reference/user/delete
 func (api *API) UsersDeleteByIds(ids []string) (err error) {
 	response, err := api.CallWithError("user.delete", ids)
 	if err != nil {
