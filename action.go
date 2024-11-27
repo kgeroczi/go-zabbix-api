@@ -1,5 +1,10 @@
 package zabbix
 
+import (
+	"fmt"
+	"strconv"
+)
+
 // Condition represents a condition for the action filter
 type Condition struct {
 	ConditionType string `json:"conditiontype"`
@@ -115,4 +120,109 @@ func (api *API) ActionsDeleteByIds(ids []string) (err error) {
 		err = &ExpectedMore{len(ids), len(actionids)}
 	}
 	return
+}
+
+// mapOperations maps operations data from the schema to the zabbix.Operation structure
+func mapOperations(d *schema.ResourceData) ([]Operation, error) {
+	rawOperations := d.Get("operations").([]interface{})
+	var operations []Operation
+
+	for _, rawOp := range rawOperations {
+		opMap := rawOp.(map[string]interface{})
+		op := Operation{
+			OperationType: strconv.Itoa(opMap["operationtype"].(int)),
+		}
+
+		// Handle template operations (operationtype = 6, link template)
+		if op.OperationType == "6" { // Link template
+			rawTemplates := opMap["optemplate"].([]interface{})
+			templates := make([]OperationTemplate, len(rawTemplates))
+			for i, raw := range rawTemplates {
+				templates[i] = OperationTemplate{
+					TemplateID: raw.(string),
+				}
+			}
+			op.OpTemplates = templates // Use OpTemplates for template operation
+		}
+
+		// Handle other operations (e.g., add to host group, remove host)
+		if op.OperationType == "4" { // Add to host group
+			rawGroups := opMap["opgroup"].([]interface{})
+			groups := make([]OperationGroup, len(rawGroups))
+			for i, raw := range rawGroups {
+				groups[i] = OperationGroup{
+					GroupID: raw.(string),
+				}
+			}
+			op.OpGroup = groups // Use OpGroup for group operation
+		}
+
+		// Handle other operation types that don't require optemplate (e.g., add/remove host, send message)
+		if op.OperationType == "0" || op.OperationType == "1" || op.OperationType == "4" {
+			// Additional checks for other operations (you can implement logic for them as necessary)
+		}
+
+		operations = append(operations, op)
+	}
+
+	return operations, nil
+}
+
+// resourceActionCreate creates a new action on the Zabbix server
+func resourceActionCreate(d *schema.ResourceData, m interface{}) error {
+	api := m.(*API)
+
+	action := Action{
+		Name:        d.Get("name").(string),
+		EventSource: strconv.Itoa(d.Get("eventsource").(int)),
+		Filter:      mapFilter(d),
+		Operations:  nil,
+	}
+
+	// Map the operations (including template link operation)
+	operations, err := mapOperations(d)
+	if err != nil {
+		return err
+	}
+	action.Operations = operations
+
+	// Create the action
+	err = api.ActionsCreate([]Action{action})
+	if err != nil {
+		return err
+	}
+
+	log.Trace("created Action: %+v", action)
+
+	// Set ID of the created resource
+	d.SetId(fmt.Sprintf("%d", action.ActionID))
+	return resourceActionRead(d, m)
+}
+
+// resourceActionUpdate updates an existing action on the Zabbix server
+func resourceActionUpdate(d *schema.ResourceData, m interface{}) error {
+	api := m.(*API)
+	actionID := d.Id()
+
+	action := Action{
+		ActionID:    actionID,
+		Name:        d.Get("name").(string),
+		EventSource: strconv.Itoa(d.Get("eventsource").(int)),
+		Filter:      mapFilter(d),
+	}
+
+	// Map the operations (including template link operation)
+	operations, err := mapOperations(d)
+	if err != nil {
+		return err
+	}
+	action.Operations = operations
+
+	// Update the action
+	err = api.ActionsUpdate([]Action{action})
+	if err != nil {
+		return err
+	}
+
+	return resourceActionRead(d, m)
 }
