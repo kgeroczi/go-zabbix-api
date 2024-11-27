@@ -28,6 +28,7 @@ type Operation struct {
 	OperationType string              `json:"operationtype"`
 	OpGroup       []OperationGroup    `json:"opgroup,omitempty"`
 	OpTemplates   []OperationTemplate `json:"optemplate,omitempty"` // Field for template operations
+	OpCommand     string              `json:"opcommand,omitempty"`  // New field for command operation
 }
 
 // Action represents a Zabbix action object
