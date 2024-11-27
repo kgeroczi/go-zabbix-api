@@ -18,10 +18,16 @@ type OperationGroup struct {
 	GroupID string `json:"groupid"`
 }
 
+// OperationTemplate represents a template affected by an operation
+type OperationTemplate struct {
+	TemplateID string `json:"templateid"`
+}
+
 // Operation represents an operation in the action
 type Operation struct {
-	OperationType string           `json:"operationtype"`
-	OpGroup       []OperationGroup `json:"opgroup"`
+	OperationType string              `json:"operationtype"`
+	OpGroup       []OperationGroup    `json:"opgroup,omitempty"`
+	OpTemplates   []OperationTemplate `json:"optemplate,omitempty"` // Field for template operations
 }
 
 // Action represents a Zabbix action object
@@ -34,7 +40,6 @@ type Action struct {
 }
 
 // ActionsCreate Wrapper for action.create
-// https://www.zabbix.com/documentation/current/en/manual/api/reference/action/create
 func (api *API) ActionsCreate(actions []Action) (err error) {
 	response, err := api.CallWithError("action.create", actions)
 	if err != nil {
@@ -50,7 +55,6 @@ func (api *API) ActionsCreate(actions []Action) (err error) {
 }
 
 // ActionsGet Wrapper for action.get
-// https://www.zabbix.com/documentation/current/en/manual/api/reference/action/get
 func (api *API) ActionsGet(params Params) (res []Action, err error) {
 	if _, present := params["output"]; !present {
 		params["output"] = "extend"
@@ -76,14 +80,12 @@ func (api *API) ActionGetByID(id string) (res *Action, err error) {
 }
 
 // ActionsUpdate Wrapper for action.update
-// https://www.zabbix.com/documentation/current/en/manual/api/reference/action/update
 func (api *API) ActionsUpdate(actions []Action) (err error) {
 	_, err = api.CallWithError("action.update", actions)
 	return
 }
 
 // ActionsDelete Wrapper for action.delete
-// Cleans ActionID in all actions elements if call succeeds.
 func (api *API) ActionsDelete(actions []Action) (err error) {
 	ids := make([]string, len(actions))
 	for i, action := range actions {
@@ -100,7 +102,6 @@ func (api *API) ActionsDelete(actions []Action) (err error) {
 }
 
 // ActionsDeleteByIds Wrapper for action.delete
-// https://www.zabbix.com/documentation/current/en/manual/api/reference/action/delete
 func (api *API) ActionsDeleteByIds(ids []string) (err error) {
 	response, err := api.CallWithError("action.delete", ids)
 	if err != nil {
