@@ -1,7 +1,6 @@
 package zabbix
 
 import (
-	"fmt"
 	"strconv"
 )
 
@@ -123,8 +122,8 @@ func (api *API) ActionsDeleteByIds(ids []string) (err error) {
 }
 
 // mapOperations maps operations data from the schema to the zabbix.Operation structure
-func mapOperations(d *schema.ResourceData) ([]Operation, error) {
-	rawOperations := d.Get("operations").([]interface{})
+func mapOperations(d map[string]interface{}) ([]Operation, error) {
+	rawOperations := d["operations"].([]interface{})
 	var operations []Operation
 
 	for _, rawOp := range rawOperations {
@@ -166,63 +165,4 @@ func mapOperations(d *schema.ResourceData) ([]Operation, error) {
 	}
 
 	return operations, nil
-}
-
-// resourceActionCreate creates a new action on the Zabbix server
-func resourceActionCreate(d *schema.ResourceData, m interface{}) error {
-	api := m.(*API)
-
-	action := Action{
-		Name:        d.Get("name").(string),
-		EventSource: strconv.Itoa(d.Get("eventsource").(int)),
-		Filter:      mapFilter(d),
-		Operations:  nil,
-	}
-
-	// Map the operations (including template link operation)
-	operations, err := mapOperations(d)
-	if err != nil {
-		return err
-	}
-	action.Operations = operations
-
-	// Create the action
-	err = api.ActionsCreate([]Action{action})
-	if err != nil {
-		return err
-	}
-
-	log.Trace("created Action: %+v", action)
-
-	// Set ID of the created resource
-	d.SetId(fmt.Sprintf("%d", action.ActionID))
-	return resourceActionRead(d, m)
-}
-
-// resourceActionUpdate updates an existing action on the Zabbix server
-func resourceActionUpdate(d *schema.ResourceData, m interface{}) error {
-	api := m.(*API)
-	actionID := d.Id()
-
-	action := Action{
-		ActionID:    actionID,
-		Name:        d.Get("name").(string),
-		EventSource: strconv.Itoa(d.Get("eventsource").(int)),
-		Filter:      mapFilter(d),
-	}
-
-	// Map the operations (including template link operation)
-	operations, err := mapOperations(d)
-	if err != nil {
-		return err
-	}
-	action.Operations = operations
-
-	// Update the action
-	err = api.ActionsUpdate([]Action{action})
-	if err != nil {
-		return err
-	}
-
-	return resourceActionRead(d, m)
 }
