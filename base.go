@@ -175,7 +175,11 @@ func (api *API) printf(format string, v ...interface{}) {
 
 func (api *API) callBytes(method string, params interface{}) (b []byte, err error) {
 	id := atomic.AddInt32(&api.id, 1)
-	jsonobj := request{"2.0", method, params, api.Auth, id}
+	var auth_option string
+	if api.Config.Version < 70000 {
+		auth_option = api.Auth
+	}
+	jsonobj := request{"2.0", method, params, auth_option, id}
 	b, err = json.Marshal(jsonobj)
 	if err != nil {
 		return
@@ -189,6 +193,9 @@ func (api *API) callBytes(method string, params interface{}) (b []byte, err erro
 	req.ContentLength = int64(len(b))
 	req.Header.Add("Content-Type", "application/json-rpc")
 	req.Header.Add("User-Agent", api.UserAgent)
+	if api.Config.Version >= 70000 {
+		req.Header.Add("Authorization", "Bearer "+api.Auth)
+	}
 
 	if api.Config.Serialize {
 		api.ex.Lock()

@@ -4,8 +4,8 @@ package zabbix
 // https://www.zabbix.com/documentation/current/en/manual/api/reference/proxy/object#proxy
 type Proxy struct {
 	ProxyID        string `json:"proxyid,omitempty"`
-	Host           string `json:"host"`
-	Status         int    `json:"status,string"`
+	Name           string `json:"name"`
+	OperatingMode  int    `json:"status,string"`
 	Description    string `json:"description,omitempty"`
 	TLSConnect     int    `json:"tls_connect,omitempty,string"`
 	TLSAccept      int    `json:"tls_accept,omitempty,string"`
