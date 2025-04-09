@@ -5,7 +5,7 @@ package zabbix
 type Proxy struct {
 	ProxyID        string `json:"proxyid,omitempty"`
 	Name           string `json:"name"`
-	OperatingMode  int    `json:"status,string"`
+	OperatingMode  int    `json:"operating_mode,string"`
 	Description    string `json:"description,omitempty"`
 	TLSConnect     int    `json:"tls_connect,omitempty,string"`
 	TLSAccept      int    `json:"tls_accept,omitempty,string"`
