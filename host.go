@@ -55,12 +55,16 @@ type Host struct {
 
 	// Fields below used only when creating hosts
 	GroupIds         HostGroupIDs   `json:"groups,omitempty"`
+	HostGroupIds     HostGroupIDs   `json:"hostgroups,omitempty"`
 	Interfaces       HostInterfaces `json:"interfaces,omitempty"`
 	TemplateIDs      TemplateIDs    `json:"templates,omitempty"`
 	TemplateIDsClear TemplateIDs    `json:"templates_clear,omitempty"`
 	// templates are read back from this one
 	ParentTemplateIDs TemplateIDs `json:"parentTemplates,omitempty"`
-	ProxyID           string      `json:"proxy_hostid,omitempty"`
+	ProxyID           string      `json:"proxyid,omitempty"`
+	ProxyHostID       string      `json:"proxy_hostid,omitempty"`
+	ProxyGroupID      string      `json:"proxy_groupid,omitempty"`
+	MonitoredBy       string      `json:"monitored_by,omitempty"`
 	Tags              Tags        `json:"tags,omitempty"`
 }
 
