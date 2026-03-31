@@ -1,26 +1,16 @@
 package zabbix
 
-import "encoding/json"
+import (
+	"encoding/json"
+	"fmt"
+)
 
 type (
-	// AvailableType (readonly) Availability of Zabbix agent
-	// see "available" in: https://www.zabbix.com/documentation/3.2/manual/api/reference/host/object
-	AvailableType int
-
 	// StatusType Status and function of the host.
-	// see "status" in:	https://www.zabbix.com/documentation/3.2/manual/api/reference/host/object
+	// see "status" in: https://www.zabbix.com/documentation/7.0/en/manual/api/reference/host/object
 	StatusType int
 
 	InventoryMode int
-)
-
-const (
-	// Unknown (default)
-	Unknown AvailableType = 0
-	// Available host is available
-	Available AvailableType = 1
-	// Unavailable host is unavailable
-	Unavailable AvailableType = 2
 )
 
 const (
@@ -37,15 +27,13 @@ const (
 )
 
 // Host represent Zabbix host object
-// https://www.zabbix.com/documentation/3.2/manual/api/reference/host/object
+// https://www.zabbix.com/documentation/7.0/en/manual/api/reference/host/object
 type Host struct {
-	HostID     string        `json:"hostid,omitempty"`
-	Host       string        `json:"host"`
-	Available  AvailableType `json:"available,string"`
-	Error      string        `json:"error"`
-	Name       string        `json:"name"`
-	Status     StatusType    `json:"status,string"`
-	UserMacros Macros        `json:"macros,omitempty"`
+	HostID     string     `json:"hostid,omitempty"`
+	Host       string     `json:"host"`
+	Name       string     `json:"name"`
+	Status     StatusType `json:"status,string"`
+	UserMacros Macros     `json:"macros,omitempty"`
 
 	RawInventory json.RawMessage `json:"inventory,omitempty"`
 	Inventory    Inventory       `json:"-"`
@@ -54,7 +42,6 @@ type Host struct {
 	InventoryMode    InventoryMode  `json:"-"`
 
 	// Fields below used only when creating hosts
-	GroupIds         HostGroupIDs   `json:"groups,omitempty"`
 	HostGroupIds     HostGroupIDs   `json:"hostgroups,omitempty"`
 	Interfaces       HostInterfaces `json:"interfaces,omitempty"`
 	TemplateIDs      TemplateIDs    `json:"templates,omitempty"`
@@ -62,7 +49,6 @@ type Host struct {
 	// templates are read back from this one
 	ParentTemplateIDs TemplateIDs `json:"parentTemplates,omitempty"`
 	ProxyID           string      `json:"proxyid,omitempty"`
-	ProxyHostID       string      `json:"proxy_hostid,omitempty"`
 	ProxyGroupID      string      `json:"proxy_groupid,omitempty"`
 	MonitoredBy       string      `json:"monitored_by,omitempty"`
 	Tags              Tags        `json:"tags,omitempty"`
@@ -96,10 +82,10 @@ func (api *API) HostsGet(params Params) (res Hosts, err error) {
 
 			out := HostInterfaceDetail{}
 			// assume singular, if api changes, this will fault
-			err := json.Unmarshal(in.RawDetails, &out)
-			if err != nil {
-				api.printf("got error during unmarshal %s", err)
-				panic(err)
+			if unmarshalErr := json.Unmarshal(in.RawDetails, &out); unmarshalErr != nil {
+				api.printf("got error during unmarshal %s", unmarshalErr)
+				err = fmt.Errorf("unmarshal host interface detail: %w", unmarshalErr)
+				return
 			}
 			res[i].Interfaces[j].Details = &out
 		}
@@ -121,9 +107,10 @@ func (api *API) HostsGet(params Params) (res Hosts, err error) {
 
 			// lets unbox
 			var inv Inventory
-			if err := json.Unmarshal(h.RawInventory, &inv); err != nil {
-				api.printf("got error during unmarshal %s", err)
-				panic(err)
+			if unmarshalErr := json.Unmarshal(h.RawInventory, &inv); unmarshalErr != nil {
+				api.printf("got error during unmarshal %s", unmarshalErr)
+				err = fmt.Errorf("unmarshal host inventory: %w", unmarshalErr)
+				return
 			}
 			res[i].Inventory = inv
 		}
@@ -198,7 +185,7 @@ func prepHosts(hosts Hosts) {
 			hosts[i].RawInventory = json.RawMessage(asB)
 		}
 		invMode := h.InventoryMode
-		h.RawInventoryMode = &invMode
+		hosts[i].RawInventoryMode = &invMode
 	}
 }
 

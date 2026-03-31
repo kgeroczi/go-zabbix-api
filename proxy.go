@@ -1,19 +1,21 @@
 package zabbix
 
 // Proxy represent Zabbix proxy object
-// https://www.zabbix.com/documentation/current/en/manual/api/reference/proxy/object#proxy
+// https://www.zabbix.com/documentation/7.0/en/manual/api/reference/proxy/object#proxy
 type Proxy struct {
-	ProxyID        string `json:"proxyid,omitempty"`
-	Name           string `json:"name"`
-	OperatingMode  int    `json:"operating_mode,string"`
-	Description    string `json:"description,omitempty"`
-	TLSConnect     int    `json:"tls_connect,omitempty,string"`
-	TLSAccept      int    `json:"tls_accept,omitempty,string"`
-	TLSIssuer      string `json:"tls_issuer,omitempty"`
-	TLSSubject     string `json:"tls_subject,omitempty"`
-	TLSPSKIdentity string `json:"tls_psk_identity,omitempty"`
-	TLSPSK         string `json:"tls_psk,omitempty"`
-	ProxyAddress   string `json:"proxy_address,omitempty"`
+	ProxyID          string `json:"proxyid,omitempty"`
+	Name             string `json:"name"`
+	OperatingMode    int    `json:"operating_mode,string"`
+	Description      string `json:"description,omitempty"`
+	TLSConnect       int    `json:"tls_connect,omitempty,string"`
+	TLSAccept        int    `json:"tls_accept,omitempty,string"`
+	TLSIssuer        string `json:"tls_issuer,omitempty"`
+	TLSSubject       string `json:"tls_subject,omitempty"`
+	TLSPSKIdentity   string `json:"tls_psk_identity,omitempty"`
+	TLSPSK           string `json:"tls_psk,omitempty"`
+	AllowedAddresses string `json:"allowed_addresses,omitempty"`
+	Address          string `json:"address,omitempty"`
+	Port             string `json:"port,omitempty"`
 }
 
 // Proxies is an array of Proxy

@@ -8,10 +8,12 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
+	"regexp"
 	"strconv"
 	"strings"
 	"sync"
 	"sync/atomic"
+	"time"
 )
 
 type (
@@ -83,12 +85,31 @@ type API struct {
 	Config    Config
 }
 
+// DefaultTimeout is the default HTTP client timeout.
+const DefaultTimeout = 30 * time.Second
+
 type Config struct {
 	Url         string
 	TlsNoVerify bool
 	Log         *log.Logger
 	Serialize   bool
+	Timeout     time.Duration // HTTP client timeout; 0 uses DefaultTimeout
 	Version     int
+}
+
+// sensitiveFieldPattern matches JSON keys whose values should be redacted in logs.
+var sensitiveFieldPattern = regexp.MustCompile(
+	`(?i)"(auth|password|token|tls_psk|secret_key|secret|` +
+		`sessionid|api_key|apikey|` +
+		`snmpv3_authpassphrase|snmpv3_privpassphrase|snmp_community|` +
+		`value)"\s*:\s*"[^"]*"`)
+
+// redactSensitive replaces values of sensitive JSON fields with "***".
+func redactSensitive(data []byte) string {
+	return sensitiveFieldPattern.ReplaceAllStringFunc(string(data), func(match string) string {
+		idx := strings.Index(match, ":")
+		return match[:idx+1] + ` "***"`
+	})
 }
 
 func parseVersionString(vstr string) (version int64, err error) {
@@ -127,9 +148,14 @@ func parseVersionString(vstr string) (version int64, err error) {
 // It also may contain HTTP basic auth username and password like
 // http://username:password@host/api_jsonrpc.php.
 func NewAPI(c Config) (api *API, err error) {
+	timeout := c.Timeout
+	if timeout == 0 {
+		timeout = DefaultTimeout
+	}
+
 	api = &API{
 		url:       c.Url,
-		c:         http.Client{},
+		c:         http.Client{Timeout: timeout},
 		UserAgent: "github.com//go-zabbix-api",
 		Logger:    c.Log,
 		Config:    c,
@@ -143,6 +169,7 @@ func NewAPI(c Config) (api *API, err error) {
 		}
 		api.c = http.Client{
 			Transport: tr,
+			Timeout:   timeout,
 		}
 		api.printf("TLS running in insecure mode, do not use this configuration in production")
 	}
@@ -184,7 +211,7 @@ func (api *API) callBytes(method string, params interface{}) (b []byte, err erro
 	if err != nil {
 		return
 	}
-	api.printf("Request (POST): %s", b)
+	api.printf("Request (POST): %s", redactSensitive(b))
 
 	req, err := http.NewRequest("POST", api.url, bytes.NewReader(b))
 	if err != nil {
@@ -210,7 +237,7 @@ func (api *API) callBytes(method string, params interface{}) (b []byte, err erro
 	defer res.Body.Close()
 
 	b, err = ioutil.ReadAll(res.Body)
-	api.printf("Response (%d): %s", res.StatusCode, b)
+	api.printf("Response (%d): %s", res.StatusCode, redactSensitive(b))
 	return
 }
 
@@ -256,12 +283,7 @@ func (api *API) CallWithErrorParse(method string, params interface{}, result int
 // Login Calls "user.login" API method and fills api.Auth field.
 // This method modifies API structure and should not be called concurrently with other methods.
 func (api *API) Login(user, password string) (auth string, err error) {
-	var response Response
-	if api.Config.Version >= 50400 {
-		response, err = api.CallWithError("user.login", map[string]string{"username": user, "password": password})
-	} else {
-		response, err = api.CallWithError("user.login", map[string]string{"user": user, "password": password})
-	}
+	response, err := api.CallWithError("user.login", map[string]string{"username": user, "password": password})
 	if err != nil {
 		return
 	}

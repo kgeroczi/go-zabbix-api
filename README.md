@@ -6,9 +6,9 @@ Note, this is not tested and is adjusted for use of kgeroczi/terraform-provider-
 
 This Go package provides access to Zabbix API.
 
-Tested on Zabbix 3.2, 3.4, 4.0, 4.2 and 4.4, but should work since 2.0 version.
+Requires Zabbix 7.0 or later. Uses Bearer token authentication (Authorization header).
 
-This package aims to support multiple zabbix resources from its API like trigger, application, host group, host, item, template..
+This package supports multiple Zabbix resources from its API: trigger, host group, template group, host, item, template, proxy, user, user group, LLD rule, graph, and macro.
 
 ## Install
 
@@ -26,46 +26,70 @@ import (
 )
 
 func main() {
-	user := "MyZabbixUsername"
-	pass := "MyZabbixPassword"
-	api := zabbix.NewAPI("http://localhost/api_jsonrpc.php")
-	api.Login(user, pass)
-
-	res, err := api.Version()
+	api, err := zabbix.NewAPI(zabbix.Config{
+		Url: "http://localhost/api_jsonrpc.php",
+	})
 	if err != nil {
 		panic(err)
 	}
-	fmt.Printf("Connected to zabbix api v%s\n", res)
+
+	_, err = api.Login("MyZabbixUsername", "MyZabbixPassword")
+	if err != nil {
+		panic(err)
+	}
+
+	fmt.Printf("Connected to zabbix api v%d\n", api.Config.Version)
 }
 ```
+
+## Security
+
+Debug logging redacts sensitive fields (auth, password, token, tls_psk, macro values) by default. Raw request/response bodies are never logged with secret content exposed.
+
+## Notable API helpers
+
+- `Items.ByKeySafe()` — converts an item slice to a map keyed by item key, returning an error on duplicate keys. Prefer this over the legacy `ByKey()` which panics on duplicates.
+
+## Configuration
+
+`Config` supports the following fields:
+
+- `Url` — Zabbix API endpoint (required)
+- `TlsNoVerify` — disable TLS certificate verification (default: false)
+- `Serialize` — serialize API calls (default: false)
+- `Timeout` — HTTP client timeout (default: 30s if unset)
 
 ## Tests
 
 ### Considerations
 
-You should run tests before using this package.
-Zabbix API doesn't match documentation in few details, which are changing in patch releases. 
+Tests are not expected to be destructive, but you are advised to run them against a non-production instance or at least make a backup.
 
-Tests are not expected to be destructive, but you are advised to run them against not-production instance or at least make a backup.
-For a safer and more accurate testing we advice to run tests with following minimum versions which implements strict validation of valuemap for `get` method:
+### Unit tests
 
-- 4.0.13rc1 [6ead4fd7865](https://git.zabbix.com/projects/ZBX/repos/zabbix/commits/6ead4fd7865f24ba1246832caa867d33ee9773ba)
-- 4.2.7rc1 [a1d257bf6a3](https://git.zabbix.com/projects/ZBX/repos/zabbix/commits/a1d257bf6a3972e24a0044aa019d120eaf7a211a)
-- 4.4.0alpha3 [db94d75b4bf](https://git.zabbix.com/projects/ZBX/repos/zabbix/commits/db94d75b4bf5bfc72df3e01cd5fd4a57bc3784e3)
+Unit tests do not require a Zabbix instance:
 
-For more information, please see issues [ZBX-3783](https://support.zabbix.com/browse/ZBX-3783) and [ZBX-3685](https://support.zabbix.com/browse/ZBX-3685)
+```bash
+go test -v -short ./...
+```
 
-### Run tests
+### Acceptance tests
+
+Acceptance tests require a live Zabbix 7.0+ instance:
 
 ```bash
 export TEST_ZABBIX_URL=http://localhost:8080/zabbix/api_jsonrpc.php
 export TEST_ZABBIX_USER=Admin
 export TEST_ZABBIX_PASSWORD=zabbix
 export TEST_ZABBIX_VERBOSE=1
-go test -v
+go test -v ./...
 ```
 
 `TEST_ZABBIX_URL` may contain HTTP basic auth username and password: `http://username:password@host/api_jsonrpc.php`. Also, in some setups URL should be like `http://host/zabbix/api_jsonrpc.php`.
+
+### CI
+
+A GitHub Actions workflow runs unit tests automatically on push/PR. Acceptance tests run only when `TEST_ZABBIX_URL` is configured in repository variables.
 
 ## References
 

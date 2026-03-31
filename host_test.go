@@ -15,7 +15,7 @@ func CreateHost(group *zapi.HostGroup, t *testing.T) *zapi.Host {
 	hosts := zapi.Hosts{{
 		Host:       name,
 		Name:       "Name for " + name,
-		GroupIds:   zapi.HostGroupIDs{{group.GroupID}},
+		HostGroupIds:   zapi.HostGroupIDs{{group.GroupID}},
 		Interfaces: zapi.HostInterfaces{iface},
 	}}
 
@@ -51,7 +51,7 @@ func TestHosts(t *testing.T) {
 	if host.HostID == "" || host.Host == "" {
 		t.Errorf("Something is empty: %#v", host)
 	}
-	host.GroupIds = nil
+	host.HostGroupIds = nil
 	host.Interfaces = nil
 	host.ProxyID = "0"
 

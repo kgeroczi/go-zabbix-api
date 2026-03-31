@@ -8,7 +8,8 @@ type UserGroup struct {
 	DebugMode   int                  `json:"debug_mode,string"`
 	GUIAccess   int                  `json:"gui_access,string"`
 	Status      int                  `json:"users_status,string"`
-	Permissions usergrouppermissions `json:"hostgroup_rights,omitempty"`
+	Permissions              usergrouppermissions `json:"hostgroup_rights,omitempty"`
+	TemplateGroupPermissions usergrouppermissions `json:"templategroup_rights,omitempty"`
 }
 
 // UserGroups is an array of UserGroup

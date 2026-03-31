@@ -1,6 +1,9 @@
 package zabbix
 
-import "encoding/json"
+import (
+	"encoding/json"
+	"fmt"
+)
 
 type (
 	LLDEvalType     string
@@ -57,7 +60,10 @@ type LLDRule struct {
 	Description  string `json:"description"`
 	Error        string `json:"error,omitempty"`
 	IpmiSensor   string `json:"ipmi_sensor,omitempty"`
-	LifeTime     string `json:"lifetime,omitempty"`
+	LifeTime            string `json:"lifetime,omitempty"`
+	LifetimeType        int    `json:"lifetime_type,omitempty"`
+	EnabledLifetimeType int    `json:"enabled_lifetime_type,omitempty"`
+	EnabledLifetime     string `json:"enabled_lifetime,omitempty"`
 	Params       string `json:"params,omitempty"`
 	PrivateKey   string `json:"privatekey,omitempty"`
 	PublicKey    string `json:"publickey,omitempty"`
@@ -105,7 +111,7 @@ type LLDRule struct {
 // Items is an array of Item
 type LLDRules []LLDRule
 
-func (api *API) lldsHeadersUnmarshal(item LLDRules) {
+func (api *API) lldsHeadersUnmarshal(item LLDRules) error {
 	for i := 0; i < len(item); i++ {
 		h := item[i]
 
@@ -120,14 +126,24 @@ func (api *API) lldsHeadersUnmarshal(item LLDRules) {
 			continue
 		}
 
+		// Try array-of-objects format first (Zabbix 7.0+)
+		var entries []HttpHeaderEntry
+		if err := json.Unmarshal(h.RawHeaders, &entries); err == nil {
+			for _, e := range entries {
+				item[i].Headers[e.Name] = e.Value
+			}
+			continue
+		}
+
+		// Fallback to map format (pre-7.0)
 		out := HttpHeaders{}
-		err := json.Unmarshal(h.RawHeaders, &out)
-		if err != nil {
+		if err := json.Unmarshal(h.RawHeaders, &out); err != nil {
 			api.printf("got error during unmarshal %s", err)
-			panic(err)
+			return fmt.Errorf("unmarshal lld headers: %w", err)
 		}
 		item[i].Headers = out
 	}
+	return nil
 }
 
 func prepLLDs(item LLDRules) {
@@ -137,7 +153,12 @@ func prepLLDs(item LLDRules) {
 		if h.Headers == nil {
 			continue
 		}
-		asB, _ := json.Marshal(h.Headers)
+		// Marshal as array-of-objects format (Zabbix 7.0+)
+		entries := make([]HttpHeaderEntry, 0, len(h.Headers))
+		for k, v := range h.Headers {
+			entries = append(entries, HttpHeaderEntry{Name: k, Value: v})
+		}
+		asB, _ := json.Marshal(entries)
 		item[i].RawHeaders = json.RawMessage(asB)
 	}
 }
@@ -149,7 +170,10 @@ func (api *API) LLDsGet(params Params) (res LLDRules, err error) {
 		params["output"] = "extend"
 	}
 	err = api.CallWithErrorParse("discoveryrule.get", params, &res)
-	api.lldsHeadersUnmarshal(res)
+	if err != nil {
+		return
+	}
+	err = api.lldsHeadersUnmarshal(res)
 	return
 }
 

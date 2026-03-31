@@ -1,7 +1,9 @@
 package zabbix
 
+import "fmt"
+
 // Application represent Zabbix application object
-// https://www.zabbix.com/documentation/3.2/manual/api/reference/application/object
+// Deprecated: Applications were removed in Zabbix 5.4. Use item tags instead.
 type Application struct {
 	ApplicationID string `json:"applicationid,omitempty"`
 	HostID        string `json:"hostid"`
@@ -12,98 +14,43 @@ type Application struct {
 // Applications is an array of Application
 type Applications []Application
 
-// ApplicationsGet Wrapper for application.get
-// https://www.zabbix.com/documentation/3.2/manual/api/reference/application/get
-func (api *API) ApplicationsGet(params Params) (res Applications, err error) {
-	if _, present := params["output"]; !present {
-		params["output"] = "extend"
-	}
-	err = api.CallWithErrorParse("application.get", params, &res)
-	if err != nil {
-		return
-	}
+var errApplicationsRemoved = fmt.Errorf("applications API was removed in Zabbix 5.4, use item tags instead")
 
+// ApplicationsGet Wrapper for application.get
+// Deprecated: Applications were removed in Zabbix 5.4.
+func (api *API) ApplicationsGet(params Params) (res Applications, err error) {
+	err = errApplicationsRemoved
 	return
 }
 
 // ApplicationGetByID Gets application by Id only if there is exactly 1 matching application.
+// Deprecated: Applications were removed in Zabbix 5.4.
 func (api *API) ApplicationGetByID(id string) (res *Application, err error) {
-	apps, err := api.ApplicationsGet(Params{"applicationids": id})
-	if err != nil {
-		return
-	}
-
-	if len(apps) == 1 {
-		res = &apps[0]
-	} else {
-		e := ExpectedOneResult(len(apps))
-		err = &e
-	}
+	err = errApplicationsRemoved
 	return
 }
 
 // ApplicationGetByHostIDAndName Gets application by host Id and name only if there is exactly 1 matching application.
+// Deprecated: Applications were removed in Zabbix 5.4.
 func (api *API) ApplicationGetByHostIDAndName(hostID, name string) (res *Application, err error) {
-	apps, err := api.ApplicationsGet(Params{"hostids": hostID, "filter": map[string]string{"name": name}})
-	if err != nil {
-		return
-	}
-
-	if len(apps) == 1 {
-		res = &apps[0]
-	} else {
-		e := ExpectedOneResult(len(apps))
-		err = &e
-	}
+	err = errApplicationsRemoved
 	return
 }
 
 // ApplicationsCreate Wrapper for application.create
-// https://www.zabbix.com/documentation/3.2/manual/api/reference/application/create
+// Deprecated: Applications were removed in Zabbix 5.4.
 func (api *API) ApplicationsCreate(apps Applications) (err error) {
-	response, err := api.CallWithError("application.create", apps)
-	if err != nil {
-		return
-	}
-
-	result := response.Result.(map[string]interface{})
-	applicationids := result["applicationids"].([]interface{})
-	for i, id := range applicationids {
-		apps[i].ApplicationID = id.(string)
-	}
-	return
+	return errApplicationsRemoved
 }
 
-// ApplicationsDelete Wrapper for application.delete:
-// Cleans ApplicationID in all apps elements if call succeed.
-// https://www.zabbix.com/documentation/2.2/manual/appendix/api/application/delete
+// ApplicationsDelete Wrapper for application.delete
+// Deprecated: Applications were removed in Zabbix 5.4.
 func (api *API) ApplicationsDelete(apps Applications) (err error) {
-	ids := make([]string, len(apps))
-	for i, app := range apps {
-		ids[i] = app.ApplicationID
-	}
-
-	err = api.ApplicationsDeleteByIds(ids)
-	if err == nil {
-		for i := range apps {
-			apps[i].ApplicationID = ""
-		}
-	}
-	return
+	return errApplicationsRemoved
 }
 
 // ApplicationsDeleteByIds Wrapper for application.delete
-// https://www.zabbix.com/documentation/2.2/manual/appendix/api/application/delete
+// Deprecated: Applications were removed in Zabbix 5.4.
 func (api *API) ApplicationsDeleteByIds(ids []string) (err error) {
-	response, err := api.CallWithError("application.delete", ids)
-	if err != nil {
-		return
-	}
-
-	result := response.Result.(map[string]interface{})
-	applicationids := result["applicationids"].([]interface{})
-	if len(ids) != len(applicationids) {
-		err = &ExpectedMore{len(ids), len(applicationids)}
-	}
-	return
+	return errApplicationsRemoved
 }

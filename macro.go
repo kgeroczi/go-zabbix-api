@@ -1,12 +1,13 @@
 package zabbix
 
-// Macro represent Zabbix User MAcro object
-// https://www.zabbix.com/documentation/3.2/manual/api/reference/usermacro/object
+// Macro represent Zabbix User Macro object
+// https://www.zabbix.com/documentation/7.0/en/manual/api/reference/usermacro/object
 type Macro struct {
 	MacroID   string `json:"hostmacroids,omitempty"`
 	HostID    string `json:"hostid,omitempty"`
 	MacroName string `json:"macro"`
 	Value     string `json:"value"`
+	Type      int    `json:"type,omitempty"`
 }
 
 // Macros is an array of Macro
@@ -57,7 +58,7 @@ func (api *API) MacrosCreate(macros Macros) error {
 // MacrosUpdate Wrapper for usermacro.update
 // https://www.zabbix.com/documentation/3.2/manual/api/reference/usermacro/update
 func (api *API) MacrosUpdate(macros Macros) (err error) {
-	_, err = api.CallWithError("usermacro.create", macros)
+	_, err = api.CallWithError("usermacro.update", macros)
 	return
 }
 

@@ -1,24 +1,10 @@
 package zabbix
 
-type (
-	// InternalType (readonly) Whether the group is used internally by the system. An internal group cannot be deleted.
-	// see "internal" in https://www.zabbix.com/documentation/3.2/manual/api/reference/hostgroup/object
-	InternalType int
-)
-
-const (
-	// NotInternal (default) not internal
-	NotInternal InternalType = 0
-	// Internal internal
-	Internal InternalType = 1
-)
-
 // HostGroup represent Zabbix host group object
-// https://www.zabbix.com/documentation/3.2/manual/api/reference/hostgroup/object
+// https://www.zabbix.com/documentation/7.0/en/manual/api/reference/hostgroup/object
 type HostGroup struct {
-	GroupID  string       `json:"groupid,omitempty"`
-	Name     string       `json:"name"`
-	Internal InternalType `json:"internal,omitempty,string"`
+	GroupID string `json:"groupid,omitempty"`
+	Name    string `json:"name"`
 }
 
 // HostGroups is an array of HostGroup

@@ -37,8 +37,6 @@ const (
 	SNMPv3Agent ItemType = 6
 	// ZabbixAgentActive type
 	ZabbixAgentActive ItemType = 7
-	// ZabbixAggregate type
-	ZabbixAggregate ItemType = 8
 	// WebItem type
 	WebItem ItemType = 9
 	// ExternalCheck type
@@ -59,6 +57,10 @@ const (
 	Dependent ItemType = 18
 	HTTPAgent ItemType = 19
 	SNMPAgent ItemType = 20
+	// Script type (Zabbix 6.4+)
+	Script ItemType = 21
+	// Browser type (Zabbix 7.0+)
+	Browser ItemType = 22
 )
 
 const (
@@ -105,8 +107,14 @@ const (
 
 type HttpHeaders map[string]string
 
+// HttpHeaderEntry represents a single header entry in the Zabbix 7.0+ array format
+type HttpHeaderEntry struct {
+	Name  string `json:"name"`
+	Value string `json:"value"`
+}
+
 // Item represent Zabbix item object
-// https://www.zabbix.com/documentation/3.2/manual/api/reference/item/object
+// https://www.zabbix.com/documentation/7.0/en/manual/api/reference/item/object
 type Item struct {
 	ItemID       string    `json:"itemid,omitempty"`
 	Delay        string    `json:"delay"`
@@ -122,12 +130,8 @@ type Item struct {
 	Error        string    `json:"error,omitempty"`
 	History      string    `json:"history,omitempty"`
 	Trends       string    `json:"trends,omitempty"`
-	TrapperHosts string    `json:"trapper_hosts,omitempty"`
-	Params       string    `json:"params,omitempty"`
-
-	// list of strings on set, but list of objects on get
-	RawApplications json.RawMessage `json:"applications,omitempty"`
-	Applications    []string        `json:"-"`
+	TrapperHosts string `json:"trapper_hosts,omitempty"`
+	Params       string `json:"params,omitempty"`
 
 	ItemParent Hosts `json:"hosts"`
 
@@ -184,15 +188,27 @@ type Preprocessor struct {
 // Items is an array of Item
 type Items []Item
 
-// ByKey Converts slice to map by key. Panics if there are duplicate keys.
-func (items Items) ByKey() (res map[string]Item) {
+// ByKeySafe converts slice to map by key. Returns error on duplicate keys.
+func (items Items) ByKeySafe() (res map[string]Item, err error) {
 	res = make(map[string]Item, len(items))
 	for _, i := range items {
-		_, present := res[i.Key]
-		if present {
-			panic(fmt.Errorf("Duplicate key %s", i.Key))
+		if _, present := res[i.Key]; present {
+			return nil, fmt.Errorf("duplicate key %s", i.Key)
 		}
 		res[i.Key] = i
+	}
+	return
+}
+
+// ByKey converts slice to map by key.
+//
+// Deprecated: ByKey panics on duplicate keys. Use ByKeySafe instead, which
+// returns an error. This method is kept only for backward compatibility and
+// will be removed in a future major version.
+func (items Items) ByKey() (res map[string]Item) {
+	res, err := items.ByKeySafe()
+	if err != nil {
+		panic(err)
 	}
 	return
 }
@@ -204,7 +220,10 @@ func (api *API) ItemsGet(params Params) (res Items, err error) {
 		params["output"] = "extend"
 	}
 	err = api.CallWithErrorParse("item.get", params, &res)
-	api.itemsHeadersUnmarshal(res)
+	if err != nil {
+		return
+	}
+	err = api.itemsHeadersUnmarshal(res)
 	return
 }
 func (api *API) ProtoItemsGet(params Params) (res Items, err error) {
@@ -212,29 +231,16 @@ func (api *API) ProtoItemsGet(params Params) (res Items, err error) {
 		params["output"] = "extend"
 	}
 	err = api.CallWithErrorParse("itemprototype.get", params, &res)
-	api.itemsHeadersUnmarshal(res)
+	if err != nil {
+		return
+	}
+	err = api.itemsHeadersUnmarshal(res)
 	return
 }
 
-func (api *API) itemsHeadersUnmarshal(item Items) {
+func (api *API) itemsHeadersUnmarshal(item Items) error {
 	for i := 0; i < len(item); i++ {
 		h := item[i]
-
-		if len(h.RawApplications) != 0 {
-			asStr := string(h.RawApplications)
-			if asStr != "[]" {
-				var applications Applications
-				err := json.Unmarshal(h.RawApplications, &applications)
-				if err != nil {
-					panic(err)
-				}
-				ids := []string{}
-				for _, a := range applications {
-					ids = append(ids, a.ApplicationID)
-				}
-				item[i].Applications = ids
-			}
-		}
 
 		item[i].Headers = HttpHeaders{}
 
@@ -247,30 +253,39 @@ func (api *API) itemsHeadersUnmarshal(item Items) {
 			continue
 		}
 
+		// Try array-of-objects format first (Zabbix 7.0+)
+		var entries []HttpHeaderEntry
+		if err := json.Unmarshal(h.RawHeaders, &entries); err == nil {
+			for _, e := range entries {
+				item[i].Headers[e.Name] = e.Value
+			}
+			continue
+		}
+
+		// Fallback to map format (pre-7.0)
 		out := HttpHeaders{}
-		err := json.Unmarshal(h.RawHeaders, &out)
-		if err != nil {
+		if err := json.Unmarshal(h.RawHeaders, &out); err != nil {
 			api.printf("got error during unmarshal %s", err)
-			panic(err)
+			return fmt.Errorf("unmarshal item headers: %w", err)
 		}
 		item[i].Headers = out
 	}
+	return nil
 }
 
 func prepItems(item Items) {
 	for i := 0; i < len(item); i++ {
 		h := item[i]
 
-		if h.Applications != nil {
-			text, _ := json.Marshal(h.Applications)
-			raw := json.RawMessage(text)
-			h.RawApplications = raw
-		}
-
 		if h.Headers == nil {
 			continue
 		}
-		asB, _ := json.Marshal(h.Headers)
+		// Marshal as array-of-objects format (Zabbix 7.0+)
+		entries := make([]HttpHeaderEntry, 0, len(h.Headers))
+		for k, v := range h.Headers {
+			entries = append(entries, HttpHeaderEntry{Name: k, Value: v})
+		}
+		asB, _ := json.Marshal(entries)
 		item[i].RawHeaders = json.RawMessage(asB)
 	}
 }
@@ -305,16 +320,8 @@ func (api *API) ProtoItemGetByID(id string) (res *Item, err error) {
 	return
 }
 
-// ItemsGetByApplicationID Gets items by application Id.
-func (api *API) ItemsGetByApplicationID(id string) (res Items, err error) {
-	return api.ItemsGet(Params{"applicationids": id})
-}
-func (api *API) ProtoItemsGetByApplicationID(id string) (res Items, err error) {
-	return api.ProtoItemsGet(Params{"applicationids": id})
-}
-
 // ItemsCreate Wrapper for item.create
-// https://www.zabbix.com/documentation/3.2/manual/api/reference/item/create
+// https://www.zabbix.com/documentation/7.0/en/manual/api/reference/item/create
 func (api *API) ItemsCreate(items Items) (err error) {
 	prepItems(items)
 	response, err := api.CallWithError("item.create", items)

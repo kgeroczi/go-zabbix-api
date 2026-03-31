@@ -3,7 +3,6 @@ package zabbix_test
 import (
 	"log"
 	"math/rand"
-	"net/http"
 	"os"
 	"regexp"
 	"testing"
@@ -47,8 +46,11 @@ func getAPI(t *testing.T) *zapi.API {
 	var c zapi.Config
 	c.Url = url
 
-	_api = zapi.NewAPI(c)
-	_api.SetClient(http.DefaultClient)
+	var err error
+	_api, err = zapi.NewAPI(c)
+	if err != nil {
+		t.Fatal(err)
+	}
 	v := os.Getenv("TEST_ZABBIX_VERBOSE")
 	if v != "" && v != "0" {
 		_api.Logger = log.New(os.Stderr, "[zabbix] ", 0)
