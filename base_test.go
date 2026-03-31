@@ -25,10 +25,6 @@ func init() {
 		log.Fatal(err)
 	}
 	_host += "-testing"
-
-	if os.Getenv("TEST_ZABBIX_URL") == "" {
-		log.Fatal("Set environment variables TEST_ZABBIX_URL (and optionally TEST_ZABBIX_USER and TEST_ZABBIX_PASSWORD)")
-	}
 }
 
 func getHost() string {
@@ -36,11 +32,16 @@ func getHost() string {
 }
 
 func getAPI(t *testing.T) *zapi.API {
+	t.Helper()
+
 	if _api != nil {
 		return _api
 	}
 
 	url, user, password := os.Getenv("TEST_ZABBIX_URL"), os.Getenv("TEST_ZABBIX_USER"), os.Getenv("TEST_ZABBIX_PASSWORD")
+	if url == "" {
+		t.Skip("Set TEST_ZABBIX_URL (and optionally TEST_ZABBIX_USER and TEST_ZABBIX_PASSWORD) to run API integration tests")
+	}
 
 	// Zabbix client connection configuration
 	var c zapi.Config

@@ -50,7 +50,7 @@ func (api *API) MacrosCreate(macros Macros) error {
 	result := response.Result.(map[string]interface{})
 	macroids := result["hostmacroids"].([]interface{})
 	for i, id := range macroids {
-		macros[i].HostID = id.(string)
+		macros[i].MacroID = id.(string)
 	}
 	return nil
 }
@@ -67,6 +67,9 @@ func (api *API) MacrosUpdate(macros Macros) (err error) {
 // https://www.zabbix.com/documentation/3.2/manual/api/reference/usermacro/delete
 func (api *API) MacrosDeleteByIDs(ids []string) (err error) {
 	response, err := api.CallWithError("usermacro.delete", ids)
+	if err != nil {
+		return
+	}
 
 	result := response.Result.(map[string]interface{})
 	hostmacroids := result["hostmacroids"].([]interface{})

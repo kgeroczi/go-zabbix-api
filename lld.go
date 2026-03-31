@@ -55,21 +55,21 @@ type LLDRule struct {
 	//	ValueType    ValueType `json:"value_type,string"`
 	//	DataType     DataType  `json:"data_type,string"`
 	//	Delta        DeltaType `json:"delta,string"`
-	AuthType     string `json:"authtype,omitempty"`
-	DelayFlex    string `json:"delay_flex,omitempty"`
-	Description  string `json:"description"`
-	Error        string `json:"error,omitempty"`
-	IpmiSensor   string `json:"ipmi_sensor,omitempty"`
+	AuthType            string `json:"authtype,omitempty"`
+	DelayFlex           string `json:"delay_flex,omitempty"`
+	Description         string `json:"description"`
+	Error               string `json:"error,omitempty"`
+	IpmiSensor          string `json:"ipmi_sensor,omitempty"`
 	LifeTime            string `json:"lifetime,omitempty"`
 	LifetimeType        int    `json:"lifetime_type,omitempty"`
 	EnabledLifetimeType int    `json:"enabled_lifetime_type,omitempty"`
 	EnabledLifetime     string `json:"enabled_lifetime,omitempty"`
-	Params       string `json:"params,omitempty"`
-	PrivateKey   string `json:"privatekey,omitempty"`
-	PublicKey    string `json:"publickey,omitempty"`
-	Status       string `json:"status,omitempty"`
-	TrapperHosts string `json:"trapper_hosts,omitempty"`
-	MasterItemID string `json:"master_itemid,omitempty"`
+	Params              string `json:"params,omitempty"`
+	PrivateKey          string `json:"privatekey,omitempty"`
+	PublicKey           string `json:"publickey,omitempty"`
+	Status              string `json:"status,omitempty"`
+	TrapperHosts        string `json:"trapper_hosts,omitempty"`
+	MasterItemID        string `json:"master_itemid,omitempty"`
 
 	// ssh / telnet
 	Username string `json:"username,omitempty"`

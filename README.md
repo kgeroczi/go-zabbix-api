@@ -1,6 +1,6 @@
 # Go zabbix api
 
-Note, this is not tested and is adjusted for use of kgeroczi/terraform-provider-zabbix
+This package is actively tested and adjusted for use with kgeroczi/terraform-provider-zabbix.
 
 [![GoDoc](https://godoc.org/github.com/kgeroczi/go-zabbix-api?status.svg)](https://godoc.org/github.com/kgeroczi/go-zabbix-api) [![MIT License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
@@ -8,7 +8,7 @@ This Go package provides access to Zabbix API.
 
 Requires Zabbix 7.0 or later. Uses Bearer token authentication (Authorization header).
 
-This package supports multiple Zabbix resources from its API: trigger, host group, template group, host, item, template, proxy, user, user group, LLD rule, graph, and macro.
+This package supports multiple Zabbix resources from its API: trigger, host group, template group, host, item, template, proxy, user, user group, LLD rule, graph, macro, service, SLA, and report.
 
 ## Install
 
@@ -73,9 +73,14 @@ Unit tests do not require a Zabbix instance:
 go test -v -short ./...
 ```
 
+Test layout:
+
+- Unit-focused tests: `host_unit_test.go`
+- Integration/API tests (auto-skipped without `TEST_ZABBIX_URL`): `application_test.go`, `base_test.go`, `host_group_test.go`, `host_test.go`, `item_test.go`, `template_test.go`, `trigger_test.go`, `report_test.go`, `proto_test.go`, `api_types_smoke_test.go`
+
 ### Acceptance tests
 
-Acceptance tests require a live Zabbix 7.0+ instance:
+Integration/acceptance tests require a live Zabbix 7.0+ instance and are skipped when `TEST_ZABBIX_URL` is not set:
 
 ```bash
 export TEST_ZABBIX_URL=http://localhost:8080/zabbix/api_jsonrpc.php

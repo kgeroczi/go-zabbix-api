@@ -130,8 +130,8 @@ type Item struct {
 	Error        string    `json:"error,omitempty"`
 	History      string    `json:"history,omitempty"`
 	Trends       string    `json:"trends,omitempty"`
-	TrapperHosts string `json:"trapper_hosts,omitempty"`
-	Params       string `json:"params,omitempty"`
+	TrapperHosts string    `json:"trapper_hosts,omitempty"`
+	Params       string    `json:"params,omitempty"`
 
 	ItemParent Hosts `json:"hosts"`
 
@@ -171,7 +171,7 @@ type Item struct {
 
 	// Prototype
 	RuleID        string   `json:"ruleid,omitempty"`
-	DiscoveryRule *LLDRule `json:"discoveryRule,omitEmpty"`
+	DiscoveryRule *LLDRule `json:"discoveryRule,omitempty"`
 
 	Tags Tags `json:"tags,omitempty"`
 }

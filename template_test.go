@@ -8,11 +8,11 @@ import (
 
 func CreateTemplate(hostGroup *zapi.HostGroup, t *testing.T) *zapi.Template {
 
-	group := zapi.HostGroupID{
+	group := zapi.TemplateGroupID{
 		GroupID: hostGroup.GroupID,
 	}
 
-	groups := []zapi.HostGroupID{group}
+	groups := []zapi.TemplateGroupID{group}
 
 	template := zapi.Templates{zapi.Template{
 		Host:   "template name",

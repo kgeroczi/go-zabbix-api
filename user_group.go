@@ -3,11 +3,11 @@ package zabbix
 // UserGroupGroup represent Zabbix usergroup object
 // https://www.zabbix.com/documentation/current/en/manual/api/reference/usergroup/object
 type UserGroup struct {
-	UserGroupID string               `json:"usrgrpid,omitempty"`
-	Name        string               `json:"name"`
-	DebugMode   int                  `json:"debug_mode,string"`
-	GUIAccess   int                  `json:"gui_access,string"`
-	Status      int                  `json:"users_status,string"`
+	UserGroupID              string               `json:"usrgrpid,omitempty"`
+	Name                     string               `json:"name"`
+	DebugMode                int                  `json:"debug_mode,string"`
+	GUIAccess                int                  `json:"gui_access,string"`
+	Status                   int                  `json:"users_status,string"`
 	Permissions              usergrouppermissions `json:"hostgroup_rights,omitempty"`
 	TemplateGroupPermissions usergrouppermissions `json:"templategroup_rights,omitempty"`
 }
