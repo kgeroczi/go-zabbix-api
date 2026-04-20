@@ -42,7 +42,7 @@ type Host struct {
 	InventoryMode    InventoryMode  `json:"-"`
 
 	// Fields below used only when creating hosts
-	HostGroupIds     HostGroupIDs   `json:"hostgroups,omitempty"`
+	HostGroupIds     HostGroupIDs   `json:"groups"`
 	Interfaces       HostInterfaces `json:"interfaces,omitempty"`
 	TemplateIDs      TemplateIDs    `json:"templates,omitempty"`
 	TemplateIDsClear TemplateIDs    `json:"templates_clear,omitempty"`

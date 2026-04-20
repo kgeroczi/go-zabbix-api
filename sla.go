@@ -46,7 +46,7 @@ const (
 type SLAServiceTag struct {
 	Tag      string             `json:"tag"`
 	Value    string             `json:"value,omitempty"`
-	Operator SLATagOperatorType `json:"operator,omitempty"`
+	Operator SLATagOperatorType `json:"operator,omitempty,string"`
 }
 
 // SLASchedule represents a scheduled uptime window for an SLA
@@ -71,13 +71,13 @@ type SLAExcludedDowntime struct {
 type SLA struct {
 	SLAID             string                `json:"slaid,omitempty"`
 	Name              string                `json:"name"`
-	Period            SLAPeriodType         `json:"period"`
-	SLO               float64               `json:"slo"`
-	EffectiveDate     int64                 `json:"effective_date,omitempty"`
+	Period            SLAPeriodType         `json:"period,string"`
+	SLO               float64               `json:"slo,string"`
+	EffectiveDate     int64                 `json:"effective_date,string"`
 	Timezone          string                `json:"timezone,omitempty"`
-	Status            SLAStatusType         `json:"status"`
+	Status            SLAStatusType         `json:"status,string"`
 	Description       string                `json:"description,omitempty"`
-	ServiceTags       []SLAServiceTag       `json:"service_tags,omitempty"`
+	ServiceTags       []SLAServiceTag       `json:"service_tags"`
 	Schedule          []SLASchedule         `json:"schedule,omitempty"`
 	ExcludedDowntimes []SLAExcludedDowntime `json:"excluded_downtimes,omitempty"`
 }

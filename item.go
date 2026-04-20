@@ -124,8 +124,8 @@ type Item struct {
 	Name         string    `json:"name"`
 	Type         ItemType  `json:"type,string"`
 	ValueType    ValueType `json:"value_type,string"`
-	DataType     DataType  `json:"data_type,string"`
-	Delta        DeltaType `json:"delta,string"`
+	DataType     DataType  `json:"data_type,string,omitempty"`
+	Delta        DeltaType `json:"delta,string,omitempty"`
 	Description  string    `json:"description"`
 	Error        string    `json:"error,omitempty"`
 	History      string    `json:"history,omitempty"`
@@ -133,7 +133,7 @@ type Item struct {
 	TrapperHosts string    `json:"trapper_hosts,omitempty"`
 	Params       string    `json:"params,omitempty"`
 
-	ItemParent Hosts `json:"hosts"`
+	ItemParent Hosts `json:"hosts,omitempty"`
 
 	Preprocessors Preprocessors `json:"preprocessing,omitempty"`
 

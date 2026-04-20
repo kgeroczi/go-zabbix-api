@@ -4,6 +4,28 @@ All notable changes to this project will be documented in this file.
 
 The format is based on Keep a Changelog, and this project follows Semantic Versioning.
 
+## [v0.3.2] - 2026-04-20
+
+### Changed
+- Improved JSON compatibility for Zabbix 7.x API responses that return numeric fields as strings.
+- Updated service model tags in `service.go` to decode string-backed numeric fields:
+  - `algorithm`, `sortorder`, `weight`, `propagation_rule`, `propagation_value`, `status`, `created_at`
+  - status rule fields: `type`, `limit_n`, `limit_s`, `new_status`
+  - problem tag `operator`
+- Updated SLA model tags in `sla.go` to decode string-backed numeric fields:
+  - `period`, `slo`, `effective_date`, `status`
+  - service tag `operator`
+- Updated macro model tag in `macro.go` to decode string-backed `type`.
+
+### Fixed
+- Fixed host create/update payload compatibility in `host.go`:
+  - `HostGroupIds` now uses `groups` JSON key (instead of `hostgroups`).
+- Fixed SLA payload requirements in `sla.go`:
+  - `service_tags` and `effective_date` are always serialized when present in the model contract.
+- Fixed item payload compatibility in `item.go`:
+  - `hosts` is no longer sent on create/update unless explicitly provided.
+  - `data_type` and `delta` are omitted when unset to avoid invalid parameters for item types that do not accept them.
+
 ## [v0.3.1] - 2026-03-31
 
 ### Added

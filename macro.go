@@ -7,7 +7,7 @@ type Macro struct {
 	HostID    string `json:"hostid,omitempty"`
 	MacroName string `json:"macro"`
 	Value     string `json:"value"`
-	Type      int    `json:"type,omitempty"`
+	Type      int    `json:"type,string,omitempty"`
 }
 
 // Macros is an array of Macro

@@ -74,16 +74,16 @@ type ServiceTag struct {
 type ServiceProblemTag struct {
 	Tag      string                 `json:"tag"`
 	Value    string                 `json:"value,omitempty"`
-	Operator ServiceTagOperatorType `json:"operator,omitempty"`
+	Operator ServiceTagOperatorType `json:"operator,omitempty,string"`
 }
 
 // ServiceStatusRule represents a status rule for the service
 // https://www.zabbix.com/documentation/6.0/en/manual/api/reference/service/object#status-rule
 type ServiceStatusRule struct {
-	Type      ServiceStatusRuleType `json:"type"`
-	Limit_n   int                   `json:"limit_n"`
-	LimitS    int                   `json:"limit_s"`
-	NewStatus int                   `json:"new_status"`
+	Type      ServiceStatusRuleType `json:"type,string"`
+	Limit_n   int                   `json:"limit_n,string"`
+	LimitS    int                   `json:"limit_s,string"`
+	NewStatus int                   `json:"new_status,string"`
 }
 
 // ServiceID represents a minimal service reference used in parent/child relations
@@ -99,17 +99,17 @@ type ServiceIDs []ServiceID
 type Service struct {
 	ServiceID        string                     `json:"serviceid,omitempty"`
 	Name             string                     `json:"name"`
-	Algorithm        ServiceAlgorithmType       `json:"algorithm"`
-	Sortorder        int                        `json:"sortorder"`
-	Weight           int                        `json:"weight,omitempty"`
-	PropagationRule  ServicePropagationRuleType `json:"propagation_rule,omitempty"`
-	PropagationValue int                        `json:"propagation_value,omitempty"`
+	Algorithm        ServiceAlgorithmType       `json:"algorithm,string"`
+	Sortorder        int                        `json:"sortorder,string"`
+	Weight           int                        `json:"weight,omitempty,string"`
+	PropagationRule  ServicePropagationRuleType `json:"propagation_rule,omitempty,string"`
+	PropagationValue int                        `json:"propagation_value,omitempty,string"`
 	// Status is read-only, calculated by Zabbix
-	Status      int    `json:"status,omitempty"`
+	Status      int    `json:"status,string,omitempty"`
 	Description string `json:"description,omitempty"`
 	UUID        string `json:"uuid,omitempty"`
 	// CreatedAt is read-only
-	CreatedAt   int64               `json:"created_at,omitempty"`
+	CreatedAt   int64               `json:"created_at,omitempty,string"`
 	Tags        []ServiceTag        `json:"tags,omitempty"`
 	ProblemTags []ServiceProblemTag `json:"problem_tags,omitempty"`
 	StatusRules []ServiceStatusRule `json:"status_rules,omitempty"`
