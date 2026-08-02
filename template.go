@@ -8,6 +8,8 @@ type Template struct {
 	Description     string           `json:"description,omitempty"`
 	Name            string           `json:"name,omitempty"`
 	Groups          TemplateGroupIDs `json:"groups"`
+	// template groups are read back from this one (selectTemplateGroups returns "templategroups" since Zabbix 6.2)
+	TemplateGroupsRead TemplateGroupIDs `json:"templategroups,omitempty"`
 	UserMacros      Macros           `json:"macros"`
 	LinkedTemplates TemplateIDs      `json:"templates,omitempty"`
 	ParentTemplates TemplateIDs      `json:"parentTemplates,omitempty"`
