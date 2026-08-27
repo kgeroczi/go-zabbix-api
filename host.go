@@ -48,6 +48,8 @@ type Host struct {
 	TemplateIDsClear TemplateIDs    `json:"templates_clear,omitempty"`
 	// templates are read back from this one
 	ParentTemplateIDs TemplateIDs `json:"parentTemplates,omitempty"`
+	// host groups are read back from this one (selectHostGroups returns "hostgroups" since Zabbix 6.2)
+	HostGroupsRead HostGroupIDs `json:"hostgroups,omitempty"`
 	ProxyID           string      `json:"proxyid,omitempty"`
 	ProxyGroupID      string      `json:"proxy_groupid,omitempty"`
 	MonitoredBy       string      `json:"monitored_by,omitempty"`
